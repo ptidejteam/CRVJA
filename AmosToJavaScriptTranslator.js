@@ -1476,66 +1476,47 @@ ${this.indent()}}, 16); \n
     console.log(finalIfStatement);
   }
 
-  enterArray_create(ctx) {
-    for (let i = 0; i < ctx.array_structure().length; i++) {
-      if (ctx.array_structure(i).NUMBER().length > 1) {
-        const struct = ctx.array_structure(i);
-        const name = struct.IDENTIFIER(0)?.getText();
+enterArray_create(ctx) {
+  for (let i = 0; i < ctx.array_structure().length; i++) {
+    const struct = ctx.array_structure(i);
+    const name = struct.IDENTIFIER(0)?.getText();
 
-        const dim0 =
-          struct.NUMBER(0)?.getText() ||
-          struct.expression1(0)?.getText() ||
-          "0";
-        const dim1 =
-          struct.NUMBER(1)?.getText() || struct.expression1(1)?.getText();
+    // Check if we have 2 dimensions (either NUMBER or expression1)
+    const hasTwoDimensions = 
+      struct.NUMBER().length > 1 || 
+      struct.expression1().length > 1;
 
-        if (dim1) {
-          // Matriz 2D
-          const xSize = parseInt(dim0) + 1;
-          const ySize = parseInt(dim1) + 1;
+    if (hasTwoDimensions) {
+      // Get dimensions (could be numbers or variables)
+      const dim0 = struct.NUMBER(0)?.getText() || 
+                   struct.expression1(0)?.getText() || 
+                   "0";
+      const dim1 = struct.NUMBER(1)?.getText() || 
+                   struct.expression1(1)?.getText();
 
-          this.output += `${this.indent()}const ${name} = new Array(${ySize});\n`;
-          this.output += `${this.indent()}for (let i = 0; i < ${ySize}; i++) ${name}[i] = new Array(${xSize});\n`;
-        } else {
-          // Vetor 1D
-          const size = parseInt(dim0) + 1;
-          this.output += `${this.indent()}const ${name} = new Array(${size});\n`;
-        }
-      } else if (ctx.array_structure(i).expression1().length > 1) {
-        this.output += `
-        ${this.indent()}const ${ctx
-          .array_structure(i)
-          .IDENTIFIER(0)
-          ?.getText()}0 = new Array(${
-          ctx.array_structure(i).NUMBER(0) === null
-            ? ctx.array_structure(i).expression1(0)?.getText()
-            : ctx.array_structure(i).NUMBER(0)?.getText()
-        });
-                `;
-        this.output += `
-                ${this.indent()}const ${ctx
-                  .array_structure(i)
-                  .IDENTIFIER(0)
-                  ?.getText()}1 = new Array(${
-                  ctx.array_structure(i).NUMBER(0) === null
-                    ? ctx.array_structure(i).expression1(1)?.getText()
-                    : ctx.array_structure(i).NUMBER(0)?.getText()
-                });
-                        `;
+      if (dim1) {
+        // 2D Matrix - need to add 1 to dimensions
+        // Check if dimensions are numeric literals or variables
+        const xSize = struct.NUMBER(0) ? `${parseInt(dim0) + 1}` : `(${dim0} + 1)`;
+        const ySize = struct.NUMBER(1) ? `${parseInt(dim1) + 1}` : `(${dim1} + 1)`;
+
+        this.output += `${this.indent()}const ${name} = new Array(${ySize});\n`;
+        this.output += `${this.indent()}for (let i = 0; i < ${ySize}; i++) ${name}[i] = new Array(${xSize});\n`;
       } else {
-        this.output += `
-  ${this.indent()}const ${ctx
-    .array_structure(i)
-    .IDENTIFIER(0)
-    ?.getText()} = new Array(${
-    ctx.array_structure(i).NUMBER(0) === null
-      ? ctx.array_structure(i).expression1(0)?.getText()
-      : ctx.array_structure(i).NUMBER(0)?.getText()
-  });
-          `;
+        // 1D Array
+        const size = struct.NUMBER(0) ? `${parseInt(dim0) + 1}` : `(${dim0} + 1)`;
+        this.output += `${this.indent()}const ${name} = new Array(${size});\n`;
       }
+    } else {
+      // Single dimension array
+      const dim0 = struct.NUMBER(0)?.getText() || 
+                   struct.expression1(0)?.getText() || 
+                   "0";
+      const size = struct.NUMBER(0) ? `${parseInt(dim0) + 1}` : `(${dim0} + 1)`;
+      this.output += `${this.indent()}const ${name} = new Array(${size});\n`;
     }
   }
+}
   exitFor_loop(ctx) {
     this.indentLevel--; // Decrease indentation after exiting the loop
     this.output += `${this.indent()}}`;
@@ -1581,44 +1562,54 @@ ${this.indent()}}, 16); \n
     }
   }
 
-  enterArray_update(ctx) {
-    let arrayName = ctx.IDENTIFIER(0)?.getText();
-    let arrayIndex = ctx.NUMBER(0)?.getText();
-    let arrayTargetValue = ctx.expression1(1)?.getText();
-    if (arrayIndex === undefined) {
-      arrayIndex = ctx.IDENTIFIER(1)?.getText();
-      if (arrayIndex === undefined) {
-        arrayIndex = ctx.expression1(0)?.getText();
-        arrayTargetValue = ctx.expression1(1)?.getText();
-      }
-    }
-    if (arrayTargetValue === undefined) {
-      arrayTargetValue = ctx.expression1(0)?.getText();
-    }
-
-    // Check for Qcos or Qsin and process the scaling
-    if (
-      arrayTargetValue.includes("Qcos") ||
-      arrayTargetValue.includes("Qsin")
-    ) {
-      // Extract the function name (Qcos or Qsin) and contents inside parentheses
-      const match = arrayTargetValue.match(/(Qcos|Qsin)\(([^,]+),([^)]+)\)/);
-
-      if (match) {
-        const funcName = match[1]; // Qcos or Qsin
-        const angle = match[2].trim(); // First value inside parentheses
-        const scale = match[3].trim(); // Second value inside parentheses
-
-        // Replace Qcos/Qsin with Cos/Sin and apply scaling
-        const trigFunction = funcName === "Qcos" ? "Cos" : "Sin";
-        arrayTargetValue = `${trigFunction}(${angle}) * ${scale}`;
-      }
-    }
-
-    this.output += `
-       ${this.indent()}${arrayName}[${arrayIndex}] = ${arrayTargetValue};
-    `;
+ enterArray_update(ctx) {
+  const arrayName = ctx.IDENTIFIER(0)?.getText();
+  
+  // Get the first index (can be NUMBER, IDENTIFIER, or expression1)
+  let index1 = ctx.NUMBER(0)?.getText() || 
+               ctx.IDENTIFIER(1)?.getText() || 
+               ctx.expression1(0)?.getText();
+  
+  // Check if there's a second index (for 2D arrays)
+  let index2 = null;
+  if (ctx.COMMA()) {
+    // There's a comma, so we have a second dimension
+    index2 = ctx.NUMBER(1)?.getText() || 
+             ctx.IDENTIFIER(2)?.getText() || 
+             ctx.expression1(1)?.getText();
   }
+  
+  // Get the value to assign
+  let arrayTargetValue;
+  if (index2) {
+    // 2D array: value is at expression1(2)
+    arrayTargetValue = ctx.expression1(2)?.getText();
+  } else {
+    // 1D array: value is at expression1(1) or expression1(0)
+    arrayTargetValue = ctx.expression1(1)?.getText() || ctx.expression1(0)?.getText();
+  }
+
+  // Check for Qcos or Qsin and process the scaling
+  if (arrayTargetValue && (arrayTargetValue.includes("Qcos") || arrayTargetValue.includes("Qsin"))) {
+    const match = arrayTargetValue.match(/(Qcos|Qsin)\(([^,]+),([^)]+)\)/);
+    if (match) {
+      const funcName = match[1];
+      const angle = match[2].trim();
+      const scale = match[3].trim();
+      const trigFunction = funcName === "Qcos" ? "Cos" : "Sin";
+      arrayTargetValue = `${trigFunction}(${angle}) * ${scale}`;
+    }
+  }
+
+  // Generate the appropriate JavaScript based on 1D or 2D
+  if (index2) {
+    // 2D array assignment: arrayName[index2][index1] = value
+    this.output += `${this.indent()}${arrayName}[${index2}][${index1}] = ${arrayTargetValue};\n`;
+  } else {
+    // 1D array assignment: arrayName[index1] = value
+    this.output += `${this.indent()}${arrayName}[${index1}] = ${arrayTargetValue};\n`;
+  }
+}
 
   enterIf_statement(ctx) {
     function convertAMOSArrayAccess(text) {
