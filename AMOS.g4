@@ -7,6 +7,7 @@ LOWRES: 'Lowres';
 HIRES: 'Hires'; 
 COMMA: ','; 
 COMMENT: '\'' ~[\n\r]* -> skip; 
+REM: 'Rem' ~[\n\r]* -> skip;
 WS: [ \t\n\r]+ -> skip; 
 CURSOFF: 'Curs Off'; 
 CURSON: 'Curs On'; 
