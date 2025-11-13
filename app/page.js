@@ -1642,6 +1642,75 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
                 >
                   Run code
                 </button>
+                                <button
+                  onClick={async () => {
+                    try {
+                      localStorage.setItem("savedAmosCode", AmosCode);
+                  
+                    } catch (err) {
+                      console.error("❌ Failed to run code:", err);
+                    }
+                  }}
+                  style={styleButton}
+                  onMouseDown={(e) => {
+                    e.target.style.transform = "translate(4px, 4px)";
+                    e.target.style.boxShadow = "0 0 0 #004444";
+                  }}
+                  onMouseUp={(e) => {
+                    e.target.style.transform = "translate(0, 0)";
+                    e.target.style.boxShadow = "4px 4px 0 #004444";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "translate(0, 0)";
+                    e.target.style.boxShadow = "4px 4px 0 #004444";
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "translate(2px, 2px)";
+                    e.target.style.boxShadow = "2px 2px 0 #004444";
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.transform = "translate(0, 0)";
+                    e.target.style.boxShadow = "4px 4px 0 #004444";
+                  }}
+                >
+                  Save Code
+                </button>
+                                                <button
+                  onClick={async () => {
+                    try {
+                      const savedCode = localStorage.getItem("savedAmosCode");
+                      if (savedCode) {
+                        setAmosCode(savedCode);
+                       
+                      }
+                    } catch (err) {
+                      console.error("❌ Failed to run code:", err);
+                    }
+                  }}
+                  style={styleButton}
+                  onMouseDown={(e) => {
+                    e.target.style.transform = "translate(4px, 4px)";
+                    e.target.style.boxShadow = "0 0 0 #004444";
+                  }}
+                  onMouseUp={(e) => {
+                    e.target.style.transform = "translate(0, 0)";
+                    e.target.style.boxShadow = "4px 4px 0 #004444";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "translate(0, 0)";
+                    e.target.style.boxShadow = "4px 4px 0 #004444";
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "translate(2px, 2px)";
+                    e.target.style.boxShadow = "2px 2px 0 #004444";
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.transform = "translate(0, 0)";
+                    e.target.style.boxShadow = "4px 4px 0 #004444";
+                  }}
+                >
+                  Load Code
+                </button>
               </div>
 
               <CodeEditorWithErrors
