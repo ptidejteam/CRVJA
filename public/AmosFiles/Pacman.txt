@@ -1,6 +1,6 @@
 ' PAC-MAN Henrique 2025
 
-Screen Open 1,947,947,8,Hires
+Screen Open 1,747,747,8,Hires
 Curs Off
 
 Paper 0 : Palette $0,$666,$FF0,$888,$BBB,$AAA,$BBB,$CCC
