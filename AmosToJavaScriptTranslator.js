@@ -1582,11 +1582,13 @@ enterArray_create(ctx) {
   // Get the value to assign
   let arrayTargetValue;
   if (index2) {
-    // 2D array: value is at expression1(2)
-    arrayTargetValue = ctx.expression1(2)?.getText();
+    // 2D array: value should be the last expression1
+    // The indices are at expression1(0) and expression1(1), so value is at expression1(2)
+    const expressionCount = ctx.expression1().length;
+    arrayTargetValue = ctx.expression1(expressionCount - 1)?.getText();
   } else {
-    // 1D array: value is at expression1(1) or expression1(0)
-    arrayTargetValue = ctx.expression1(1)?.getText() || ctx.expression1(0)?.getText();
+    // 1D array: first expression is the index, second is the value
+    arrayTargetValue = ctx.expression1(1)?.getText();
   }
 
   // Check for Qcos or Qsin and process the scaling
@@ -1610,7 +1612,6 @@ enterArray_create(ctx) {
     this.output += `${this.indent()}${arrayName}[${index1}] = ${arrayTargetValue};\n`;
   }
 }
-
   enterIf_statement(ctx) {
     function convertAMOSArrayAccess(text) {
       const match = text.match(
