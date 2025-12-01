@@ -11,3 +11,10 @@
 * {
     font-family: 'Amiga4Ever', sans-serif;
 }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #9B87FF !important;
+  height: 100%;
+  border: ;
+}

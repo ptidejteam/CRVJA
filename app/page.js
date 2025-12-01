@@ -9,6 +9,24 @@ import prettier from "prettier/standalone";
 import babelPlugin from "prettier/plugins/babel";
 import estreePlugin from "prettier/plugins/estree";
 import AMOSDecoder from "@/src/tools/AmosDecoder";
+import AnalogClock from "@/src/tools/UI/analogClock";
+import { WorkbenchIcon, WorkbenchShell, WorkbenchWindow } from "@/src/tools/UI/workbench";
+
+const styleButton = {
+  backgroundColor: "#00aaaa",
+  minWidth: "300px",
+  color: "white",
+  fontWeight: "bold",
+  padding: "10px 20px",
+  border: "4px solid #006666",
+  boxShadow: "4px 4px 0 #004444",
+  textShadow: "1px 1px 0 #006666",
+  letterSpacing: "1px",
+  fontFamily: "monospace",
+  fontSize: "16px",
+  cursor: "pointer",
+  transition: "all 0.1s ease-in-out",
+};
 
 class CollectingErrorListener extends antlr4.error.ErrorListener {
   constructor() {
@@ -285,8 +303,83 @@ function CodeEditorWithErrors({
     </div>
   );
 }
+function ExampleTabs({ tabs, onSelect }) {
+  const [active, setActive] = useState(0);
+
+  return (
+    <div style={{ width: "100%", textAlign: "center" }}>
+      Examples
+      {/* --- Buttons for the active tab --- */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "20px",
+          marginBottom: "10px",
+        }}
+      >
+        {tabs[active].map((btn, i) => (
+          <button
+            key={i}
+            onClick={btn.onClick}
+            style={styleButton}
+            onMouseDown={(e) => {
+              e.target.style.transform = "translate(4px, 4px)";
+              e.target.style.boxShadow = "0 0 0 #004444";
+            }}
+            onMouseUp={(e) => {
+              e.target.style.transform = "translate(0, 0)";
+              e.target.style.boxShadow = "4px 4px 0 #004444";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = "translate(0, 0)";
+              e.target.style.boxShadow = "4px 4px 0 #004444";
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = "translate(2px, 2px)";
+              e.target.style.boxShadow = "2px 2px 0 #004444";
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = "translate(0, 0)";
+              e.target.style.boxShadow = "4px 4px 0 #004444";
+            }}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
+
+      {/* --- Circle pagination --- */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          marginTop: "10px",
+        }}
+      >
+        {tabs.map((_, i) => (
+          <div
+            key={i}
+            onClick={() => setActive(i)}
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              background: i === active ? "#00aaaa" : "#888",
+              cursor: "pointer",
+              transition: "0.2s",
+            }}
+          ></div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function App() {
+  const [showCode, setShowCode] = useState(false);
+
   const [jsCode, setJsCode] = useState("");
   const [parseErrors, setParseErrors] = useState([]);
   const [numBanks, setNumBanks] = useState(6);
@@ -316,7 +409,7 @@ function App() {
   }, []);
 
   const bankFilesRef = React.useRef(bankFiles);
-useEffect(() => { bankFilesRef.current = bankFiles; }, [bankFiles]);
+  useEffect(() => { bankFilesRef.current = bankFiles; }, [bankFiles]);
   useEffect(() => {
     // Save bank data to local storage whenever it changes
     localStorage.setItem("bankCreator", JSON.stringify(bankCreator));
@@ -404,7 +497,20 @@ useEffect(() => { bankFilesRef.current = bankFiles; }, [bankFiles]);
 
     reader.readAsArrayBuffer(file); // Use readAsArrayBuffer for binary data
   }
+  function downloadASCFile(filename, text) {
+    const blob = new Blob([text], { type: "text/plain" });
 
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename.endsWith(".asc") ? filename : filename + ".asc";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  }
   const clearBank = () => {
     localStorage.removeItem("bankCreator");
     setBankCreator({ sprites: [], palette: Array(32).fill("#000000") });
@@ -494,53 +600,53 @@ useEffect(() => { bankFilesRef.current = bankFiles; }, [bankFiles]);
 
     // ---- PLAIN JS selector; find the bank file inputs in the PARENT ----
     const forwardBanks = async () => {
-  // 1) existing: from real <input type="file">
-  const inputs = Array.from(
-    document.querySelectorAll(
-      'input[type="file"][id^="bankStored"], input[type="file"][id^="Creator_bankStored"]'
-    )
-  );
+      // 1) existing: from real <input type="file">
+      const inputs = Array.from(
+        document.querySelectorAll(
+          'input[type="file"][id^="bankStored"], input[type="file"][id^="Creator_bankStored"]'
+        )
+      );
 
-  for (const input of inputs) {
-    const file = input.files && input.files[0];
-    if (!file) continue;
-    const buffer = await file.arrayBuffer();
-    const m = input.id.match(/(\d+)$/);
-    const bankId = m ? m[1] : "";
-    iframe.contentWindow?.postMessage(
-      {
-        type: "amos-bank",
-        token,
-        bankId,
-        name: file.name,
-        mime: file.type || "application/octet-stream",
-        buffer,
-      },
-      "*",
-      [buffer]
-    );
-  }
+      for (const input of inputs) {
+        const file = input.files && input.files[0];
+        if (!file) continue;
+        const buffer = await file.arrayBuffer();
+        const m = input.id.match(/(\d+)$/);
+        const bankId = m ? m[1] : "";
+        iframe.contentWindow?.postMessage(
+          {
+            type: "amos-bank",
+            token,
+            bankId,
+            name: file.name,
+            mime: file.type || "application/octet-stream",
+            buffer,
+          },
+          "*",
+          [buffer]
+        );
+      }
 
-  // 2) NEW: also forward from React state (programmatically loaded files)
-  const files = bankFilesRef.current || [];
-  for (let i = 0; i < files.length; i++) {
-    const f = files[i];
-    if (!f) continue;
-    const buffer = await f.arrayBuffer();
-    iframe.contentWindow?.postMessage(
-      {
-        type: "amos-bank",
-        token,
-        bankId: String(i + 1),      // banks are 1-based in your IDs
-        name: f.name,
-        mime: f.type || "application/octet-stream",
-        buffer,
-      },
-      "*",
-      [buffer]
-    );
-  }
-};
+      // 2) NEW: also forward from React state (programmatically loaded files)
+      const files = bankFilesRef.current || [];
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        if (!f) continue;
+        const buffer = await f.arrayBuffer();
+        iframe.contentWindow?.postMessage(
+          {
+            type: "amos-bank",
+            token,
+            bankId: String(i + 1),      // banks are 1-based in your IDs
+            name: f.name,
+            mime: f.type || "application/octet-stream",
+            buffer,
+          },
+          "*",
+          [buffer]
+        );
+      }
+    };
 
 
     const onMessage = (e) => {
@@ -731,7 +837,7 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
       );
       try {
         iframe.remove();
-      } catch {}
+      } catch { }
     };
   }, [jsCode, runNonce]);
 
@@ -1048,6 +1154,7 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
           flexDirection: "row",
           gap: "20%",
           border: "1px solid red",
+
         }}
       >
         <div>
@@ -1175,9 +1282,8 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${
-                  sprites[spriteSelected].width * 16
-                }, 20px)`,
+                gridTemplateColumns: `repeat(${sprites[spriteSelected].width * 16
+                  }, 20px)`,
                 gap: "1px",
               }}
             >
@@ -1310,6 +1416,13 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
 
     return () => clearTimeout(id);
   }, [AmosCode]);
+
+
+  const [showRender, setShowRender] = useState(false);
+  const [showSpriteEditor, setShowSpriteEditor] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
+  const [showClock, setShowClock] = useState(false);
+  const [selectedIcon, setSelectedIcon] = useState(null);
   const styleButton = {
     backgroundColor: "#00aaaa",
     minWidth: "300px",
@@ -1327,508 +1440,386 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
   };
 
   return (
-    <div className="App">
-      <h1>AMOS Basic parser to JavaScript</h1>
+    <WorkbenchShell>
 
+      {/* Icons Row */}
       <div
+        onClick={() => setSelectedIcon(null)}
         style={{
-          display: "flex",
-          marginTop: "30px",
+          position: "absolute",
 
-          padding: "5px",
-        }}
-      >
-        <div
-          style={{
-            height: "100vh",
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-              height: "20vh",
-              border: "1px solid black",
-            }}
-          >
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "60px",
+          margin: "20px"
+        }}>
+        <WorkbenchIcon id="crvja" label="CRVJA" icon="/icons/beer.png" onOpen={() => setShowCode(true)} selected={selectedIcon === "crvja"}
+          setSelectedIcon={setSelectedIcon} />
+        <WorkbenchIcon id="sprites" label="Sprites" icon="/icons/sprite.png" onOpen={() => setShowSpriteEditor(true)} selected={selectedIcon === "sprites"}
+          setSelectedIcon={setSelectedIcon} />
+
+        <WorkbenchIcon id="clock" label="Clock" icon="/icons/clock.png" onOpen={() => setShowClock(true)} selected={selectedIcon === "clock"}
+          setSelectedIcon={setSelectedIcon} />
+      </div>
+
+      {/* Windows */}
+      {showCode && (
+        <WorkbenchWindow title="CRVJA" onClose={() => setShowCode(false)}>
+          <div>
+
             <div
               style={{
-                width: "100%",
                 display: "flex",
-                flexDirection: "column",
-                marginLeft: "-2px",
-                gap: "10px",
+                marginTop: "30px",
+
+                padding: "5px",
               }}
             >
               <div
                 style={{
+
+                  width: "100%",
                   display: "flex",
-                  flexDirection: "row",
-
-                  alignItems: "center",
-                  gap: "10px",
+                  flexDirection: "column",
                 }}
               >
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  style={styleButton}
-                  onMouseDown={(e) => {
-                    e.target.style.transform = "translate(4px, 4px)";
-                    e.target.style.boxShadow = "0 0 0 #004444";
-                  }}
-                  onMouseUp={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "translate(2px, 2px)";
-                    e.target.style.boxShadow = "2px 2px 0 #004444";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
+                <div
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "row",
+                    height: "20vh",
+
                   }}
                 >
-                  LOAD .ASC FILE
-                </button>
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  style={{ display: "none" }}
-                  accept=".asc, .txt, .amo"
-                />
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignContent: "center",
-                }}
-              >
-                <AMOSDecoder onDecoded={(text) => setDecodedText(text)} />
-              </div>
-            </div>
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-
-                alignItems: "center",
-              }}
-            >
-              <div>Examples</div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, 1fr)",
-                  gap: "10px",
-                }}
-              >
-                <button
-                  onClick={async () => {
-                    try {
-                      const res = await fetch(
-                        "/AmosFiles/Amos2_Rotating_Triangle.txt"
-                      );
-                      if (!res.ok)
-                        throw new Error(`HTTP error! status: ${res.status}`);
-                      const text = await res.text();
-                      setAmosCode(text);
-                      parseAmosCode(text);
-
-                      // Do something with the text, e.g., setState(text)
-                    } catch (err) {
-                      console.error("❌ Failed to load file:", err);
-                    }
-                  }}
-                  style={styleButton}
-                  onMouseDown={(e) => {
-                    e.target.style.transform = "translate(4px, 4px)";
-                    e.target.style.boxShadow = "0 0 0 #004444";
-                  }}
-                  onMouseUp={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "translate(2px, 2px)";
-                    e.target.style.boxShadow = "2px 2px 0 #004444";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                >
-                  Rotating Triangle
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      const resBank1 = await fetch(
-                        "/AmosFiles/AmosBank_pacman.abk"
-                      );
-                      if (!resBank1.ok)
-                        throw new Error(
-                          `HTTP error! status: ${resBank1.status}`
-                        );
-
-                      // Convert response to Blob
-                      const blob = await resBank1.blob();
-
-                      // Create a File object (mimicking <input type="file"> result)
-                      const file = new File([blob], "AmosBank_pacman.abk", {
-                        type: blob.type,
-                      });
-
-                      // Now pass it to your handler like when user selects file
-                      handleFileChange(0, file);
-
-                      const res = await fetch("/AmosFiles/Pacman.txt");
-                      if (!res.ok)
-                        throw new Error(`HTTP error! status: ${res.status}`);
-                      const text = await res.text();
-                      setAmosCode(text);
-                      parseAmosCode(text);
-
-                      // Do something with the text, e.g., setState(text)
-                    } catch (err) {
-                      console.error("❌ Failed to load file:", err);
-                    }
-                  }}
-                  style={styleButton}
-                  onMouseDown={(e) => {
-                    e.target.style.transform = "translate(4px, 4px)";
-                    e.target.style.boxShadow = "0 0 0 #004444";
-                  }}
-                  onMouseUp={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "translate(2px, 2px)";
-                    e.target.style.boxShadow = "2px 2px 0 #004444";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                >
-                  Pacman
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      const res = await fetch(
-                        "/AmosFiles/Amos1_piano_improved.asc"
-                      );
-                      if (!res.ok)
-                        throw new Error(`HTTP error! status: ${res.status}`);
-                      const text = await res.text();
-                      setAmosCode(text);
-                      parseAmosCode(text);
-
-                      // Do something with the text, e.g., setState(text)
-                    } catch (err) {
-                      console.error("❌ Failed to load file:", err);
-                    }
-                  }}
-                  style={styleButton}
-                  onMouseDown={(e) => {
-                    e.target.style.transform = "translate(4px, 4px)";
-                    e.target.style.boxShadow = "0 0 0 #004444";
-                  }}
-                  onMouseUp={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "translate(2px, 2px)";
-                    e.target.style.boxShadow = "2px 2px 0 #004444";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                >
-                  Piano
-                </button>
-              </div>
-            </div>
-          </div>
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-              height: "fit-content",
-              border: "1px solid black",
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                  maxHeight:"80vh",
-                  minHeight:"500px"
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignContent: "center",
-                  alignItems: "center",
-                  gap: "20px"
-                }}
-              >
-                {" "}
-                <label htmlFor="amos-code">Code Area</label>
-                <button
-                  onClick={async () => {
-                    try {
-                      await parseAmosCode(AmosCode); // updates jsCode
-                      onRunClick(); // bumps runNonce -> useEffect runs -> iframe rebuilt
-                    } catch (err) {
-                      console.error("❌ Failed to run code:", err);
-                    }
-                  }}
-                  style={styleButton}
-                  onMouseDown={(e) => {
-                    e.target.style.transform = "translate(4px, 4px)";
-                    e.target.style.boxShadow = "0 0 0 #004444";
-                  }}
-                  onMouseUp={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "translate(2px, 2px)";
-                    e.target.style.boxShadow = "2px 2px 0 #004444";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                >
-                  Run code
-                </button>
-                                <button
-                  onClick={async () => {
-                    try {
-                      localStorage.setItem("savedAmosCode", AmosCode);
-                  
-                    } catch (err) {
-                      console.error("❌ Failed to run code:", err);
-                    }
-                  }}
-                  style={styleButton}
-                  onMouseDown={(e) => {
-                    e.target.style.transform = "translate(4px, 4px)";
-                    e.target.style.boxShadow = "0 0 0 #004444";
-                  }}
-                  onMouseUp={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "translate(2px, 2px)";
-                    e.target.style.boxShadow = "2px 2px 0 #004444";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                >
-                  Save Code
-                </button>
-                                                <button
-                  onClick={async () => {
-                    try {
-                      const savedCode = localStorage.getItem("savedAmosCode");
-                      if (savedCode) {
-                        setAmosCode(savedCode);
-                       
-                      }
-                    } catch (err) {
-                      console.error("❌ Failed to run code:", err);
-                    }
-                  }}
-                  style={styleButton}
-                  onMouseDown={(e) => {
-                    e.target.style.transform = "translate(4px, 4px)";
-                    e.target.style.boxShadow = "0 0 0 #004444";
-                  }}
-                  onMouseUp={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "translate(2px, 2px)";
-                    e.target.style.boxShadow = "2px 2px 0 #004444";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = "translate(0, 0)";
-                    e.target.style.boxShadow = "4px 4px 0 #004444";
-                  }}
-                >
-                  Load Code
-                </button>
-              </div>
-
-              <CodeEditorWithErrors
-                value={AmosCode}
-                onChange={setAmosCode}
-                errors={parseErrors}
-                style={{ width: "44vw", height: "100%", margin: "10px" }}
-              />
-            </div>
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                maxHeight:"100vh",
-                alignItems: "center",
-              }}
-            >
-              <label htmlFor="amos-code">Render code area</label>
-              <div id="game-container"></div>
-            </div>
-          </div>
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-              border: "1px solid black",
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div>
-                {" "}
-                {bankFiles.map((file, index) => (
-                  <li key={index}>
-                    Bank {index + 1}:{" "}
-                    {file ? file.name.split("_")[1] : <i>No file selected</i>}
-                  </li>
-                ))}
-              </div>
-            </div>
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{ width: "100%" }}>
-                {Array.from({ length: numBanks }, (_, index) => (
-                  <div style={{ marginBottom: "10px" }} key={index}>
-                    <label>Bank {index + 1}: </label>
-                    <input
-                      id={`bankStored${index + 1}`}
-                      type="file"
-                      onChange={(e) => {
-                        if (e.target.files.length > 0) {
-                          const file = e.target.files[0];
-                          console.log(
-                            `File selected for bank ${index + 1}:`,
-                            file.name
-                          );
-                          handleFileChange(index, file);
-                        }
+                  <div style={{ display: 'flex', flexDirection: "row", gap: "10px" }} >
+                    <div
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        marginLeft: "-2px",
+                        gap: "10px",
                       }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+
+                          alignItems: "center",
+                          gap: "10px",
+                        }}
+                      >
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          style={styleButton}
+                          onMouseDown={(e) => {
+                            e.target.style.transform = "translate(4px, 4px)";
+                            e.target.style.boxShadow = "0 0 0 #004444";
+                          }}
+                          onMouseUp={(e) => {
+                            e.target.style.transform = "translate(0, 0)";
+                            e.target.style.boxShadow = "4px 4px 0 #004444";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = "translate(0, 0)";
+                            e.target.style.boxShadow = "4px 4px 0 #004444";
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = "translate(2px, 2px)";
+                            e.target.style.boxShadow = "2px 2px 0 #004444";
+                          }}
+                          onMouseOut={(e) => {
+                            e.target.style.transform = "translate(0, 0)";
+                            e.target.style.boxShadow = "4px 4px 0 #004444";
+                          }}
+                        >
+                          LOAD .ASC FILE
+                        </button>
+
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileUpload}
+                          style={{ display: "none" }}
+                          accept=".asc, .txt, .amo"
+                        />
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignContent: "center",
+                        }}
+                      >
+                        <AMOSDecoder onDecoded={(text) => setDecodedText(text)} />
+                      </div>
+
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: "column", gap: "10px" }} >
+                      <button
+                        onClick={async () => {
+                          try {
+                            await parseAmosCode(AmosCode); // updates jsCode
+                            onRunClick(); // bumps runNonce -> useEffect runs -> iframe rebuilt
+                          } catch (err) {
+                            console.error("❌ Failed to run code:", err);
+                          }
+                        }}
+                        style={styleButton}
+                        onMouseDown={(e) => {
+                          e.target.style.transform = "translate(4px, 4px)";
+                          e.target.style.boxShadow = "0 0 0 #004444";
+                        }}
+                        onMouseUp={(e) => {
+                          e.target.style.transform = "translate(0, 0)";
+                          e.target.style.boxShadow = "4px 4px 0 #004444";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = "translate(0, 0)";
+                          e.target.style.boxShadow = "4px 4px 0 #004444";
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = "translate(2px, 2px)";
+                          e.target.style.boxShadow = "2px 2px 0 #004444";
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.transform = "translate(0, 0)";
+                          e.target.style.boxShadow = "4px 4px 0 #004444";
+                        }}
+                      >
+                        Run code
+                      </button>
+                      <button
+
+                        onClick={() => {
+                          const filename = "my_amos_code.asc"; // or generate dynamic name
+                          downloadASCFile(filename, AmosCode);
+                        }}
+
+                        style={styleButton}
+                        onMouseDown={(e) => {
+                          e.target.style.transform = "translate(4px, 4px)";
+                          e.target.style.boxShadow = "0 0 0 #004444";
+                        }}
+                        onMouseUp={(e) => {
+                          e.target.style.transform = "translate(0, 0)";
+                          e.target.style.boxShadow = "4px 4px 0 #004444";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = "translate(0, 0)";
+                          e.target.style.boxShadow = "4px 4px 0 #004444";
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = "translate(2px, 2px)";
+                          e.target.style.boxShadow = "2px 2px 0 #004444";
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.transform = "translate(0, 0)";
+                          e.target.style.boxShadow = "4px 4px 0 #004444";
+                        }}
+                      >
+                        Save Code
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div style={{ width: "100%", marginTop: "10px" }}>
+                    <ExampleTabs
+                      tabs={[
+                        [
+
+                          {
+                            label: "Pacman",
+                            onClick: async () => {
+                              const resBank1 = await fetch("/AmosFiles/AmosBank_pacman.abk");
+                              const blob = await resBank1.blob();
+                              const file = new File([blob], "AmosBank_pacman.abk");
+                              handleFileChange(0, file);
+
+                              const text = await (await fetch("/AmosFiles/Pacman.txt")).text();
+                              setAmosCode(text);
+                              parseAmosCode(text);
+                            },
+                          },
+                          {
+                            label: "Piano",
+                            onClick: async () => {
+                              const text = await (await fetch("/AmosFiles/Amos1_piano_improved.asc")).text();
+                              setAmosCode(text);
+                              parseAmosCode(text);
+                            },
+                          },
+
+                        ],
+                        [
+                          {
+                            label: "Rotating Triangle",
+                            onClick: async () => {
+                              const text = await (await fetch("/AmosFiles/Amos2_Rotating_Triangle.txt")).text();
+                              setAmosCode(text);
+                              parseAmosCode(text);
+                            },
+                          },
+                          {
+                            label: "Empty",
+                            onClick: () => {
+                              setAmosCode("");
+                              parseAmosCode("");
+                            },
+                          },
+                        ],
+                      ]}
                     />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-              height: "10vh",
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div>
-                {" "}
-                {!createBank ? (
-                  <div>
-                    <button onClick={() => setCreateBank(true)}>
-                      Open Bank Creator
-                    </button>
+
+                </div>
+                <div
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "row",
+                    height: "fit-content",
+                    border: "1px solid black",
+                    justifyContent: "space-between",
+                  
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      maxHeight: "80vh",
+                      minHeight: "500px"
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignContent: "center",
+                        alignItems: "center",
+                        gap: "20px"
+                      }}
+                    >
+                      {" "}
+                      <label htmlFor="amos-code">Code Area</label>
+
+
+                    </div>
+
+                    <CodeEditorWithErrors
+                      value={AmosCode}
+                      onChange={setAmosCode}
+                      errors={parseErrors}
+                      style={{ width: "44vw", height: "100%", margin: "10px" }}
+                    />
                   </div>
-                ) : (
-                  <button onClick={() => setCreateBank(false)}>
-                    Close Bank Creator
-                  </button>
-                )}
-                {createBank && (
-                  <BankEditor
-                    bankCreator={bankCreator}
-                    setBankCreator={setBankCreator}
-                  />
-                )}
+                  <div>
+                    
+                  </div>
+                  <div
+                    style={{
+                      width: "fit-content",
+                      display: "flex",
+                      flexDirection: "column",
+                      maxHeight: "100vh",
+                      alignItems: "center",
+                     
+                    }}
+                  >
+                    <label htmlFor="amos-code">Render code area</label>
+                    <div  id="game-container"></div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "row",
+                    border: "1px solid black",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <div>
+                      {" "}
+                      {bankFiles.map((file, index) => (
+                        <li key={index}>
+                          Bank {index + 1}:{" "}
+                          {file ? file.name.split("_")[1] : <i>No file selected</i>}
+                        </li>
+                      ))}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <div style={{ width: "100%" }}>
+                      {Array.from({ length: numBanks }, (_, index) => (
+                        <div style={{ marginBottom: "10px" }} key={index}>
+                          <label>Bank {index + 1}: </label>
+                          <input
+                            id={`bankStored${index + 1}`}
+                            type="file"
+                            onChange={(e) => {
+                              if (e.target.files.length > 0) {
+                                const file = e.target.files[0];
+                                console.log(
+                                  `File selected for bank ${index + 1}:`,
+                                  file.name
+                                );
+                                handleFileChange(index, file);
+                              }
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+   
+              
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </WorkbenchWindow>
+      )}
+
+
+      {showSpriteEditor && (
+        <WorkbenchWindow title="Sprite Editor" onClose={() => setShowSpriteEditor(false)}>
+         <BankEditor
+                          bankCreator={bankCreator}
+                          setBankCreator={setBankCreator}
+                        />
+        </WorkbenchWindow>
+      )}
+
+
+      {showClock && (
+        <WorkbenchWindow title="Clock" onClose={() => setShowClock(false)}>
+          <AnalogClock />
+        </WorkbenchWindow>
+      )}
+
+    </WorkbenchShell>
   );
+
+
 }
 
 export default App;
