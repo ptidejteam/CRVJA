@@ -1562,56 +1562,46 @@ enterArray_create(ctx) {
     }
   }
 
- enterArray_update(ctx) {
-  const arrayName = ctx.IDENTIFIER(0)?.getText();
-  
-  // Get the first index (can be NUMBER, IDENTIFIER, or expression1)
-  let index1 = ctx.NUMBER(0)?.getText() || 
-               ctx.IDENTIFIER(1)?.getText() || 
-               ctx.expression1(0)?.getText();
-  
-  // Check if there's a second index (for 2D arrays)
+enterArray_update(ctx) {
+  const arrayName = ctx.IDENTIFIER(0).getText();
+
+  // ----------- INDEX -----------
+  let index1 =
+    ctx.NUMBER(0)?.getText() ||
+    ctx.IDENTIFIER(1)?.getText() ||
+    ctx.expression1(0)?.getText(); // only if index is an expression
+
+  // ----------- SECOND INDEX (2D array) -----------
   let index2 = null;
+
   if (ctx.COMMA()) {
-    // There's a comma, so we have a second dimension
-    index2 = ctx.NUMBER(1)?.getText() || 
-             ctx.IDENTIFIER(2)?.getText() || 
-             ctx.expression1(1)?.getText();
-  }
-  
-  // Get the value to assign
-  let arrayTargetValue;
-  if (index2) {
-    // 2D array: value should be the last expression1
-    // The indices are at expression1(0) and expression1(1), so value is at expression1(2)
-    const expressionCount = ctx.expression1().length;
-    arrayTargetValue = ctx.expression1(expressionCount - 1)?.getText();
-  } else {
-    // 1D array: first expression is the index, second is the value
-    arrayTargetValue = ctx.expression1(1)?.getText();
+    index2 =
+      ctx.NUMBER(1)?.getText() ||
+      ctx.IDENTIFIER(2)?.getText() ||
+      ctx.expression1(1)?.getText();
   }
 
-  // Check for Qcos or Qsin and process the scaling
-  if (arrayTargetValue && (arrayTargetValue.includes("Qcos") || arrayTargetValue.includes("Qsin"))) {
-    const match = arrayTargetValue.match(/(Qcos|Qsin)\(([^,]+),([^)]+)\)/);
-    if (match) {
-      const funcName = match[1];
-      const angle = match[2].trim();
-      const scale = match[3].trim();
-      const trigFunction = funcName === "Qcos" ? "Cos" : "Sin";
-      arrayTargetValue = `${trigFunction}(${angle}) * ${scale}`;
+  // ----------- VALUE (ALWAYS final expression1) -----------
+  const exprCount = ctx.expression1().length;
+  let arrayTargetValue = ctx.expression1(exprCount - 1).getText();
+
+  // ----------- Qcos/Qsin Processing -----------
+  if (arrayTargetValue.includes("Qcos") || arrayTargetValue.includes("Qsin")) {
+    const m = arrayTargetValue.match(/(Qcos|Qsin)\(([^,]+),([^)]+)\)/);
+    if (m) {
+      arrayTargetValue =
+        (m[1] === "Qcos" ? "Cos" : "Sin") + `(${m[2]}) * ${m[3]}`;
     }
   }
 
-  // Generate the appropriate JavaScript based on 1D or 2D
+  // ----------- OUTPUT JS -----------
   if (index2) {
-    // 2D array assignment: arrayName[index2][index1] = value
     this.output += `${this.indent()}${arrayName}[${index2}][${index1}] = ${arrayTargetValue};\n`;
   } else {
-    // 1D array assignment: arrayName[index1] = value
     this.output += `${this.indent()}${arrayName}[${index1}] = ${arrayTargetValue};\n`;
   }
 }
+
   enterIf_statement(ctx) {
     function convertAMOSArrayAccess(text) {
       const match = text.match(
