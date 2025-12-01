@@ -29,7 +29,8 @@ export function WorkbenchWindow({
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [fullscreen, setFullscreen] = useState(false);
     const [zIndex, setZIndex] = useState(1);
-
+    const [size, setSize] = useState({ width: 400, height: 400 });
+    const [isHovered, setIsHovered] = useState(false);
     const [myZ, setMyZ] = useState(globalZ);
 
     const bringToFront = () => {
@@ -52,10 +53,38 @@ export function WorkbenchWindow({
     };
 
     const stopDrag = () => setDragging(false);
+    React.useEffect(() => {
+        const handleKey = (e) => {
+            if (!isHovered || !e.shiftKey) return;
 
+            let delta = 100;
+
+            if (e.key === "q" || e.key === "Q") {
+                // decrease width
+                setSize(s => ({ ...s, width: Math.max(200, s.width - delta) }));
+            }
+            if (e.key === "e" || e.key === "E") {
+                // increase width
+                setSize(s => ({ ...s, width: s.width + delta }));
+            }
+            if (e.key === "a" || e.key === "A") {
+                // decrease height
+                setSize(s => ({ ...s, height: Math.max(150, s.height - delta) }));
+            }
+            if (e.key === "d" || e.key === "D") {
+                // increase height
+                setSize(s => ({ ...s, height: s.height + delta }));
+            }
+        };
+
+        window.addEventListener("keydown", handleKey);
+        return () => window.removeEventListener("keydown", handleKey);
+    }, [isHovered]);
     return (
         <div
             ref={windowRef}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             onMouseMove={drag}
             onMouseUp={stopDrag}
             onMouseDown={bringToFront}
@@ -63,15 +92,15 @@ export function WorkbenchWindow({
                 position: "absolute",
                 top: fullscreen ? 0 : pos.y,
                 left: fullscreen ? 0 : pos.x,
-                width: fullscreen ? "100%" : "400px",
-                height: fullscreen ? "100%" : "400px",
+                width: fullscreen ? "100%" : size.width,
+                height: fullscreen ? "100%" : size.height,
                 minWidth: "300px",
                 border: `3px solid ${WB_COLORS.borderDark}`,
                 boxShadow: "4px 4px 0 #000",
                 background: WB_COLORS.windowBG,
                 userSelect: "none",
                 zIndex: myZ,
-                overflow:"auto"
+                overflow: "auto"
             }}
         >
 
@@ -117,9 +146,9 @@ export function WorkbenchWindow({
                 <span style={{ paddingLeft: "5px", borderLeft: `2px solid ${WB_COLORS.screenBlue}` }} >{title}</span>
                 <div style={{ width: "100%", height: "14px" }} >
                     <div style={{ backgroundColor: WB_COLORS.screenBlue, height: "2px", width: "100%" }} />
-                    <div style={{  height: "2px", width: "100%" }} />
+                    <div style={{ height: "2px", width: "100%" }} />
                     <div style={{ backgroundColor: WB_COLORS.screenBlue, height: "2px", width: "100%" }} />
-                    <div style={{  height: "2px", width: "100%" }} />
+                    <div style={{ height: "2px", width: "100%" }} />
                     <div style={{ backgroundColor: WB_COLORS.screenBlue, height: "2px", width: "100%" }} />
                 </div>
 
