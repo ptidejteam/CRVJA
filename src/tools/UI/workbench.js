@@ -159,6 +159,7 @@ export function WorkbenchWindow({
                         onClick={(e) => {
                             e.stopPropagation();
                             sendToBack();
+                            setFullscreen(false);
                         }}
                         style={{
                             borderInline: `2px solid ${WB_COLORS.screenBlue}`,
