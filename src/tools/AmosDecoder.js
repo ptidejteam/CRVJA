@@ -239,7 +239,7 @@ export default function AMOSDecoder({ onDecoded }) {
         }}
       >
         {" "}
-        LOAD .AMOS FILE{" "}
+        Load .AMOS File{" "}
       </button>
 
       <input

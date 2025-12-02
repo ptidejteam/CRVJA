@@ -282,7 +282,7 @@ export function WorkbenchWindow({
     const [pos, setPos] = useState(defaultPos);
     const [isDragging, setDragging] = useState(false);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
-    const [fullscreen, setFullscreen] = useState(false);
+    const [fullscreen, setFullscreen] = useState(true);
     const [zIndex, setZIndex] = useState(1);
     const [size, setSize] = useState({ width: 400, height: 400 });
     const [isHovered, setIsHovered] = useState(false);

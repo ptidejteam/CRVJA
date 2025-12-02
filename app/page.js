@@ -1535,7 +1535,7 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
                             e.target.style.boxShadow = "4px 4px 0 #004444";
                           }}
                         >
-                          LOAD .ASC FILE
+                          Load .ASC File
                         </button>
 
                         <input
@@ -1620,7 +1620,7 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
                           e.target.style.boxShadow = "4px 4px 0 #004444";
                         }}
                       >
-                        Save Code
+                        Save .ASC Code
                       </button>
                     </div>
                   </div>
