@@ -1816,25 +1816,7 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
           <AnalogClock />
         </WorkbenchWindow>
       )}
-      <div style={{
-        background: "#EEE",
-        padding: "10px",
-        marginTop: "10px",
-        border: "1px solid #AAA",
-        fontFamily: "Amiga4Ever, monospace",
-        position: "absolute",
-        top: "70vh"
-      }}>
-        <strong>Window Resize Shortcuts</strong><br />
-        <br />
-        <div>• Hold <strong>SHIFT</strong> + press <strong>Q</strong> or <strong>E</strong>  → Width</div>
-        <div>• Hold <strong>SHIFT</strong> + press <strong>A</strong> or <strong>D</strong>  → Height</div>
-
-        <br />
-        <div style={{ fontSize: "12px", color: "#333" }}>
-          (Shortcuts apply to the window your mouse is hovering over.)
-        </div>
-      </div>
+     
 
 
     </WorkbenchShell>
