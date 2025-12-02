@@ -1724,11 +1724,12 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
                   </div>
                   <div
                     style={{
-                      width: "fit-content",
+                      width: "100%",
                       display: "flex",
                       flexDirection: "column",
-                      maxHeight: "100vh",
+                      maxHeight: "200vh",
                       alignItems: "center",
+                      minHeight: "100vh"
 
                     }}
                   >
@@ -1828,7 +1829,7 @@ html, body, #game-container, #amos-screen, * { font-family: 'Amiga4Ever', sans-s
         <br />
         <div>• Hold <strong>SHIFT</strong> + press <strong>Q</strong> or <strong>E</strong>  → Width</div>
         <div>• Hold <strong>SHIFT</strong> + press <strong>A</strong> or <strong>D</strong>  → Height</div>
-        
+
         <br />
         <div style={{ fontSize: "12px", color: "#333" }}>
           (Shortcuts apply to the window your mouse is hovering over.)

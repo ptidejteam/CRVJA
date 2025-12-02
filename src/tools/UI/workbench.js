@@ -90,10 +90,10 @@ export function WorkbenchWindow({
             onMouseDown={bringToFront}
             style={{
                 position: "absolute",
-                top: fullscreen ? 0 : pos.y,
-                left: fullscreen ? 0 : pos.x,
-                width: fullscreen ? "100%" : size.width,
-                height: fullscreen ? "100%" : size.height,
+                top: !fullscreen ? 0 : pos.y,
+                left: !fullscreen ? 0 : pos.x,
+                width: !fullscreen ? "100%" : size.width,
+                height: !fullscreen ? "100%" : size.height,
                 minWidth: "300px",
                 border: `3px solid ${WB_COLORS.borderDark}`,
                 boxShadow: "4px 4px 0 #000",
