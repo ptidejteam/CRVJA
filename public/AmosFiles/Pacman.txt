@@ -9,15 +9,15 @@ Load "pacman.abk"
 
 Pen 1
 
-MapSize = 30
-Dim map(MapSize, MapSize)
-Dim pointsMapX(MapSize)
-Dim pointsMapY(MapSize)
-Dim collected(MapSize, MapSize)
+MAP_SIZE = 30
+Dim map(MAP_SIZE, MAP_SIZE)
+Dim POINTS_MAP_X(MAP_SIZE)
+Dim POINTS_MAP_Y(MAP_SIZE)
+Dim COLLECTED(MAP_SIZE, MAP_SIZE)
 
-For y = 0 To MapSize 
-   For x = 0 To MapSize 
-      collected(x,y) = 0
+For y = 0 To MAP_SIZE 
+   For x = 0 To MAP_SIZE 
+      COLLECTED(x,y) = 0
    Next
 Next
 
@@ -53,34 +53,34 @@ Data 1,3,1,1,1,1,1,1,1,1,1,1,3,1,1,3,1,1,1,1,1,1,1,1,1,1,3,1
 Data 1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3,3,1
 Data 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 
-For y = 0 To MapSize 
-   For x = 0 To MapSize 
+For y = 0 To MAP_SIZE 
+   For x = 0 To MAP_SIZE 
       Read map(x, y)
    Next
 Next
 
 ' Initialize game variables
-pacmancurrentsprite = 1
-pacman_direction = 0
-pacman_turn_to_direction = 0
-playerDied = 0
-ghostCounter = 0
-tileSize = 24
-px = 14 : py = 23
-pghostonex = 12 : pghostoney = 13
-pghosttwox = 14 : pghosttwoy = 15
+PACMAN_CURRENT_SPRITE = 1
+PACMAN_DIRECTION = 0
+PACMAN_TURN_TO_DIRECTION = 0
+PLAYER_DIED = 0
+GHOST_COUNTER = 0
+TILE_SIZE = 24
+PX = 14 : PY = 23
+P_GHOST_ONE_X = 12 : P_GHOST_ONE_Y = 13
+P_GHOST_TWO_X = 14 : P_GHOST_TWO_Y = 15
 points = 0
-power_pellet = 0
-power_pellet_countdown = 0
+POWER_PELLET = 0
+POWER_PELLET_COUNTDOWN = 0
 
 ' Display UI
 Ink 3
 Text 10,780,"Points:"
 Text 130,780,points
 Text 340,770,"x:"
-Text 370,790,px
+Text 370,790,PX
 Text 400,750,"y:"
-Text 430,790,py
+Text 430,790,PY
 
 Ink 1
 Text 10,691,"Power pellet!"
@@ -91,45 +91,45 @@ Ink 3
 ' ==========================================
 Procedure MoveGhosts[a]
    ' --- Ghost 1 Movement ---
-   dx = 0 : dy = 0
-   dxone = Rnd(1)  ' Random movement
+   DX = 0 : DY = 0
+   DXone = Rnd(1)  ' Random movement
    
    ' Horizontal preference
-   If px > pghostonex
-      dx = 1
+   If PX > P_GHOST_ONE_X
+      DX = 1
    End If
    
-   If px < pghostonex
-      dx = 2
+   If PX < P_GHOST_ONE_X
+      DX = 2
    End If
    
    ' Vertical preference
-   If py > pghostoney
-      dy = 1
+   If PY > P_GHOST_ONE_Y
+      DY = 1
    End If
    
-   If py < pghostoney
-      dy = 2
+   If PY < P_GHOST_ONE_Y
+      DY = 2
    End If
    
-   ' If pacman aligned horizontally, do not move vertical unless dx=0
-   If dx <> 0
-      dy = 0
+   ' If pacman aligned horizontally, do not move vertical unless DX=0
+   If DX <> 0
+      DY = 0
    End If
    
-   previousOneX = pghostonex
-   previousOneY = pghostoney
-   previousTwoX = pghosttwox
-   previousTwoY = pghosttwoy
+   previousOneX = P_GHOST_ONE_X
+   previousOneY = P_GHOST_ONE_Y
+   previousTwoX = P_GHOST_TWO_X
+   previousTwoY = P_GHOST_TWO_Y
    random_movement = Rnd(3)
    
    If random_movement <> 0
       ' ============================================================
       ' Horizontal movement for Ghost 1
       ' ============================================================
-      If dx = 1
-         tx = pghostonex + 1
-         ty = pghostoney
+      If DX = 1
+         tx = P_GHOST_ONE_X + 1
+         ty = P_GHOST_ONE_Y
          
          valid = 0
          If map(tx,ty) = 0
@@ -145,16 +145,16 @@ Procedure MoveGhosts[a]
          End If
          
          If valid = 1
-            pghostonex = tx
-            If pghostonex = pghosttwox
-               pghostonex = previousOneX
+            P_GHOST_ONE_X = tx
+            If P_GHOST_ONE_X = P_GHOST_TWO_X
+               P_GHOST_ONE_X = previousOneX
             End If
          End If
       End If
       
-      If dx = 2
-         tx = pghostonex - 1
-         ty = pghostoney
+      If DX = 2
+         tx = P_GHOST_ONE_X - 1
+         ty = P_GHOST_ONE_Y
          
          valid = 0
          If map(tx,ty) = 0
@@ -170,18 +170,18 @@ Procedure MoveGhosts[a]
          End If
          
          If valid = 1
-            pghostonex = tx
-            If pghostonex = pghosttwox
-               pghostonex = previousOneX
+            P_GHOST_ONE_X = tx
+            If P_GHOST_ONE_X = P_GHOST_TWO_X
+               P_GHOST_ONE_X = previousOneX
             End If
          End If
       Else
          ' ============================================================
          ' Vertical movement for Ghost 1
          ' ============================================================
-         If dy = 1
-            tx = pghostonex
-            ty = pghostoney + 1
+         If DY = 1
+            tx = P_GHOST_ONE_X
+            ty = P_GHOST_ONE_Y + 1
             
             valid = 0
             If map(tx,ty) = 0
@@ -197,15 +197,15 @@ Procedure MoveGhosts[a]
             End If
             
             If valid = 1
-               pghostoney = ty
-               If pghostoney = pghosttwoy
-                  pghostoney = previousOneY
+               P_GHOST_ONE_Y = ty
+               If P_GHOST_ONE_Y = P_GHOST_TWO_Y
+                  P_GHOST_ONE_Y = previousOneY
                End If
             End If
          Else
-            If dy = 2
-               tx = pghostonex
-               ty = pghostoney - 1
+            If DY = 2
+               tx = P_GHOST_ONE_X
+               ty = P_GHOST_ONE_Y - 1
                
                valid = 0
                If map(tx,ty) = 0
@@ -221,9 +221,9 @@ Procedure MoveGhosts[a]
                End If
                
                If valid = 1
-                  pghostoney = ty
-                  If pghostoney = pghosttwoy
-                     pghostoney = previousOneY
+                  P_GHOST_ONE_Y = ty
+                  If P_GHOST_ONE_Y = P_GHOST_TWO_Y
+                     P_GHOST_ONE_Y = previousOneY
                   End If
                End If
             End If
@@ -231,166 +231,166 @@ Procedure MoveGhosts[a]
       End If
    Else
       ' If pathfinding doesn't work, random movements but also check if is walkable!
-      If dx = 1
-         If dxone = 0
+      If DX = 1
+         If DXone = 0
             ' Check if is walkable tile
-            If map(pghostonex, pghostoney + 1) = 0
-               pghostoney = pghostoney + 1
+            If map(P_GHOST_ONE_X, P_GHOST_ONE_Y + 1) = 0
+               P_GHOST_ONE_Y = P_GHOST_ONE_Y + 1
             End If
-            If map(pghostonex, pghostoney + 1) = 2
-               pghostoney = pghostoney + 1
+            If map(P_GHOST_ONE_X, P_GHOST_ONE_Y + 1) = 2
+               P_GHOST_ONE_Y = P_GHOST_ONE_Y + 1
             End If
-            If map(pghostonex, pghostoney + 1) = 3
-               pghostoney = pghostoney + 1
+            If map(P_GHOST_ONE_X, P_GHOST_ONE_Y + 1) = 3
+               P_GHOST_ONE_Y = P_GHOST_ONE_Y + 1
             End If
          Else
-            If map(pghostonex, pghostoney - 1) = 0
-               pghostoney = pghostoney - 1
+            If map(P_GHOST_ONE_X, P_GHOST_ONE_Y - 1) = 0
+               P_GHOST_ONE_Y = P_GHOST_ONE_Y - 1
             End If
-            If map(pghostonex, pghostoney - 1) = 2
-               pghostoney = pghostoney - 1
+            If map(P_GHOST_ONE_X, P_GHOST_ONE_Y - 1) = 2
+               P_GHOST_ONE_Y = P_GHOST_ONE_Y - 1
             End If
-            If map(pghostonex, pghostoney - 1) = 3
-               pghostoney = pghostoney - 1
+            If map(P_GHOST_ONE_X, P_GHOST_ONE_Y - 1) = 3
+               P_GHOST_ONE_Y = P_GHOST_ONE_Y - 1
             End If
          End If
       End If
       
-      If dx = 2
+      If DX = 2
          ' Check if is walkable tile
-         If map(pghostonex, pghostoney + 1) = 0
-            pghostoney = pghostoney + 1
+         If map(P_GHOST_ONE_X, P_GHOST_ONE_Y + 1) = 0
+            P_GHOST_ONE_Y = P_GHOST_ONE_Y + 1
          End If
-         If map(pghostonex, pghostoney + 1) = 2
-            pghostoney = pghostoney + 1
+         If map(P_GHOST_ONE_X, P_GHOST_ONE_Y + 1) = 2
+            P_GHOST_ONE_Y = P_GHOST_ONE_Y + 1
          End If
-         If map(pghostonex, pghostoney + 1) = 3
-            pghostoney = pghostoney + 1
+         If map(P_GHOST_ONE_X, P_GHOST_ONE_Y + 1) = 3
+            P_GHOST_ONE_Y = P_GHOST_ONE_Y + 1
          End If
       Else
-         If map(pghostonex, pghostoney - 1) = 0
-            pghostoney = pghostoney - 1
+         If map(P_GHOST_ONE_X, P_GHOST_ONE_Y - 1) = 0
+            P_GHOST_ONE_Y = P_GHOST_ONE_Y - 1
          End If
-         If map(pghostonex, pghostoney - 1) = 2
-            pghostoney = pghostoney - 1
+         If map(P_GHOST_ONE_X, P_GHOST_ONE_Y - 1) = 2
+            P_GHOST_ONE_Y = P_GHOST_ONE_Y - 1
          End If
-         If map(pghostonex, pghostoney - 1) = 3
-            pghostoney = pghostoney - 1
-         End If
-      End If
-      
-      If dy = 1
-         If dxone = 0
-            ' Check if is walkable tile
-            If map(pghostonex + 1, pghostoney) = 0
-               pghostonex = pghostonex + 1
-            End If
-            
-            If map(pghostonex + 1, pghostoney) = 2
-               pghostonex = pghostonex + 1
-            End If
-            
-            ' Check if is walkable tile
-            If map(pghostonex + 1, pghostoney) = 3
-               pghostonex = pghostonex + 1
-            End If
-         Else
-            ' Check if is walkable tile
-            If map(pghostonex - 1, pghostoney) = 0
-               pghostonex = pghostonex - 1
-            End If
-            
-            If map(pghostonex - 1, pghostoney) = 2
-               pghostonex = pghostonex - 1
-            End If
-            
-            ' Check if is walkable tile
-            If map(pghostonex - 1, pghostoney) = 3
-               pghostonex = pghostonex - 1
-            End If
+         If map(P_GHOST_ONE_X, P_GHOST_ONE_Y - 1) = 3
+            P_GHOST_ONE_Y = P_GHOST_ONE_Y - 1
          End If
       End If
       
-      If dy = 2
-         If dxone = 0
-            If map(pghostonex + 1, pghostoney) <> 0
-               pghostonex = pghostonex + 1
+      If DY = 1
+         If DXone = 0
+            ' Check if is walkable tile
+            If map(P_GHOST_ONE_X + 1, P_GHOST_ONE_Y) = 0
+               P_GHOST_ONE_X = P_GHOST_ONE_X + 1
+            End If
+            
+            If map(P_GHOST_ONE_X + 1, P_GHOST_ONE_Y) = 2
+               P_GHOST_ONE_X = P_GHOST_ONE_X + 1
+            End If
+            
+            ' Check if is walkable tile
+            If map(P_GHOST_ONE_X + 1, P_GHOST_ONE_Y) = 3
+               P_GHOST_ONE_X = P_GHOST_ONE_X + 1
             End If
          Else
-            If map(pghostonex - 1, pghostoney) <> 0
-               pghostonex = pghostonex - 1
+            ' Check if is walkable tile
+            If map(P_GHOST_ONE_X - 1, P_GHOST_ONE_Y) = 0
+               P_GHOST_ONE_X = P_GHOST_ONE_X - 1
+            End If
+            
+            If map(P_GHOST_ONE_X - 1, P_GHOST_ONE_Y) = 2
+               P_GHOST_ONE_X = P_GHOST_ONE_X - 1
+            End If
+            
+            ' Check if is walkable tile
+            If map(P_GHOST_ONE_X - 1, P_GHOST_ONE_Y) = 3
+               P_GHOST_ONE_X = P_GHOST_ONE_X - 1
+            End If
+         End If
+      End If
+      
+      If DY = 2
+         If DXone = 0
+            If map(P_GHOST_ONE_X + 1, P_GHOST_ONE_Y) <> 0
+               P_GHOST_ONE_X = P_GHOST_ONE_X + 1
+            End If
+         Else
+            If map(P_GHOST_ONE_X - 1, P_GHOST_ONE_Y) <> 0
+               P_GHOST_ONE_X = P_GHOST_ONE_X - 1
             End If
          End If
       End If
    End If
    
    ' --- Ghost 2 Movement (unchanged) ---
-   dx2 = Rnd(3) - 1 : dy2 = Rnd(3) - 1
+   DX2 = Rnd(3) - 1 : DY2 = Rnd(3) - 1
    
-   If dx2 = 1
-      If map(pghosttwox + 1, pghosttwoy) = 0
-         pghosttwox = pghosttwox + dx2
-         If pghosttwox = pghostonex
-            pghosttwox = previousTwoX
+   If DX2 = 1
+      If map(P_GHOST_TWO_X + 1, P_GHOST_TWO_Y) = 0
+         P_GHOST_TWO_X = P_GHOST_TWO_X + DX2
+         If P_GHOST_TWO_X = P_GHOST_ONE_X
+            P_GHOST_TWO_X = previousTwoX
          End If
       End If
    End If
    
-   If dx2 = 2
-      If map(pghosttwox - 1, pghosttwoy) = 0
-         pghosttwox = pghosttwox - 1
-         If pghosttwox = pghostonex
-            pghosttwox = previousTwoX
+   If DX2 = 2
+      If map(P_GHOST_TWO_X - 1, P_GHOST_TWO_Y) = 0
+         P_GHOST_TWO_X = P_GHOST_TWO_X - 1
+         If P_GHOST_TWO_X = P_GHOST_ONE_X
+            P_GHOST_TWO_X = previousTwoX
          End If
       End If
    End If
    
-   If dy2 = 1
-      If map(pghosttwox, pghosttwoy + 1) = 0
-         pghosttwoy = pghosttwoy + 1
-         If pghosttwoy = pghostoney
-            pghosttwoy = previousTwoY
+   If DY2 = 1
+      If map(P_GHOST_TWO_X, P_GHOST_TWO_Y + 1) = 0
+         P_GHOST_TWO_Y = P_GHOST_TWO_Y + 1
+         If P_GHOST_TWO_Y = P_GHOST_ONE_Y
+            P_GHOST_TWO_Y = previousTwoY
          End If
       End If
    End If
    
-   If dy2 = 2
-      If map(pghosttwox, pghosttwoy - 1) = 0
-         pghosttwoy = pghosttwoy - 1
-         If pghosttwoy = pghostoney
-            pghosttwoy = previousTwoY
+   If DY2 = 2
+      If map(P_GHOST_TWO_X, P_GHOST_TWO_Y - 1) = 0
+         P_GHOST_TWO_Y = P_GHOST_TWO_Y - 1
+         If P_GHOST_TWO_Y = P_GHOST_ONE_Y
+            P_GHOST_TWO_Y = previousTwoY
          End If
       End If
    End If
 End Proc
 
 ghostOneDirection = 0
-AlreadyDied = 0
+AlreaDYDied = 0
 
 ' ==========================================
 ' Map Drawing Procedure
 ' ==========================================
 Procedure P_DRAWMAP[a]
    ' Check for collision with ghosts
-   If pghosttwox = px
-      If pghosttwoy = py
-         playerDied = 1
+   If P_GHOST_TWO_X = PX
+      If P_GHOST_TWO_Y = PY
+         PLAYER_DIED = 1
       End If
    End If
    
-   If pghostonex = px
-      If pghostoney = py
-         playerDied = 1
+   If P_GHOST_ONE_X = PX
+      If P_GHOST_ONE_Y = PY
+         PLAYER_DIED = 1
       End If
    End If
    
    ' Render map tiles
-   For y = 0 To MapSize 
-      For x = 0 To MapSize 
-         x13 = x * tileSize
-         y13 = y * tileSize
-         x23 = x13 + tileSize - 1
-         y23 = y13 + tileSize - 1
+   For y = 0 To MAP_SIZE 
+      For x = 0 To MAP_SIZE 
+         x13 = x * TILE_SIZE
+         y13 = y * TILE_SIZE
+         x23 = x13 + TILE_SIZE - 1
+         y23 = y13 + TILE_SIZE - 1
          
          ' Wall tiles
          If map(x, y) = 1
@@ -402,24 +402,24 @@ Procedure P_DRAWMAP[a]
                Ink 1
                renderPoints = 1
                
-               If collected(x,y) = 1
+               If COLLECTED(x,y) = 1
                   renderPoints = 0
                End If
                
                If renderPoints = 1
                   Bar x13, y13 To x23, y23
                   Ink 3
-                  Circle x * tileSize + 12, y * tileSize + 12, 2
+                  Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 2
                Else
                   Ink 1
                   Bar x13, y13 To x23, y23
-                  Circle x * tileSize + 12, y * tileSize + 12, 10
+                  Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
                End If
             Else
                ' Power pellets (value 4)
                If map(x, y) = 4
                   renderPoints = 1
-                  If collected(x,y) = 1
+                  If COLLECTED(x,y) = 1
                      renderPoints = 0
                   End If
                   
@@ -427,38 +427,38 @@ Procedure P_DRAWMAP[a]
                      Ink 1
                      Bar x13, y13 To x23, y23
                      Ink 3
-                     Circle x * tileSize + 12, y * tileSize + 12, 8
+                     Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 8
                   Else
                      Ink 1
                      Bar x13, y13 To x23, y23
-                     Circle x * tileSize + 12, y * tileSize + 12, 10
+                     Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
                   End If
                Else
                   ' Empty space
                   Ink 1
                   Bar x13, y13 To x23, y23
-                  Circle x * tileSize + 12, y * tileSize + 12, 10
+                  Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
                End If
             End If
          End If
          
          ' Render Pac-Man
-         If x = px
+         If x = PX
             Ink 3
-            If y = py
-               pacspritex = px * tileSize + 4
-               pacspritey = py * tileSize + 4
-               Sprite 1, pacspritex, pacspritey, pacmancurrentsprite
+            If y = PY
+               pacspritex = PX * TILE_SIZE + 4
+               pacspritey = PY * TILE_SIZE + 4
+               Sprite 1, pacspritex, pacspritey, PACMAN_CURRENT_SPRITE
             End If
          End If
          
          ' Render Ghost 1
-         If x = pghostonex
+         If x = P_GHOST_ONE_X
             Ink 4
-            If y = pghostoney
-               ghostspriteonex = pghostonex * tileSize + 4
-               ghostspriteoney = pghostoney * tileSize + 4
-               If power_pellet > 0
+            If y = P_GHOST_ONE_Y
+               ghostspriteonex = P_GHOST_ONE_X * TILE_SIZE + 4
+               ghostspriteoney = P_GHOST_ONE_Y * TILE_SIZE + 4
+               If POWER_PELLET > 0
                   Sprite 2, ghostspriteonex, ghostspriteoney, 26 
                Else
                   Sprite 2, ghostspriteonex, ghostspriteoney, 25
@@ -467,12 +467,12 @@ Procedure P_DRAWMAP[a]
          End If
          
          ' Render Ghost 2
-         If x = pghosttwox
+         If x = P_GHOST_TWO_X
             Ink 5
-            If y = pghosttwoy
-               ghostspritetwox = pghosttwox * tileSize + 4
-               ghostspritetwoy = pghosttwoy * tileSize + 4
-               If power_pellet > 0
+            If y = P_GHOST_TWO_Y
+               ghostspritetwox = P_GHOST_TWO_X * TILE_SIZE + 4
+               ghostspritetwoy = P_GHOST_TWO_Y * TILE_SIZE + 4
+               If POWER_PELLET > 0
                   Sprite 3, ghostspritetwox, ghostspritetwoy, 26
                Else
                   Sprite 3, ghostspritetwox, ghostspritetwoy, 24
@@ -483,11 +483,11 @@ Procedure P_DRAWMAP[a]
    Next
    
    ' Display death message
-   If playerDied = 1
-      If AlreadyDied = 0
+   If PLAYER_DIED = 1
+      If AlreaDYDied = 0
          Ink 3
          Text 10,10,"You Died!"
-         AlreadyDied = 1
+         AlreaDYDied = 1
       End If
    End If
 End Proc
@@ -495,22 +495,22 @@ End Proc
 ' ==========================================
 ' Main Game Loop
 ' ==========================================
-ghost_timer = 1
+GHOST_TIMER = 1
 
-current_ghost_timer = ghost_timer
+CURRENT_GHOST_TIMER = GHOST_TIMER
 Ink 3
 
-Text 430,820, current_ghost_timer
+Text 430,820, CURRENT_GHOST_TIMER
 Text 130,740, "Ghost movement timer:"
 Do
    P_DRAWMAP[1]
    
-   If power_pellet > 0
+   If POWER_PELLET > 0
    Ink 2
-   Bar 10,745 To power_pellet,775
-   power_pellet = power_pellet - 5
-     If power_pellet < 0
-       power_pellet = 0
+   Bar 10,745 To POWER_PELLET,775
+   POWER_PELLET = POWER_PELLET - 5
+     If POWER_PELLET < 0
+       POWER_PELLET = 0
      End If
    Else
    Ink 1
@@ -520,26 +520,26 @@ Do
 
    
    ' Player movement input
-   nx = px : ny = py
-   If playerDied = 0
+   NX = PX : NY = PY
+   If PLAYER_DIED = 0
         If Key State($11)  ' Up arrow
-      ny = py - 1
-      pacman_direction = 2
+      NY = PY - 1
+      PACMAN_DIRECTION = 2
    End If
    
    If Key State($1F)  ' Down arrow
-      ny = py + 1
-      pacman_direction = 3
+      NY = PY + 1
+      PACMAN_DIRECTION = 3
    End If
    
    If Key State($1E)  ' Left arrow
-      nx = px - 1
-      pacman_direction = 1
+      NX = PX - 1
+      PACMAN_DIRECTION = 1
    End If
    
    If Key State($20)  ' Right arrow
-      nx = px + 1
-      pacman_direction = 0
+      NX = PX + 1
+      PACMAN_DIRECTION = 0
    End If
 
 
@@ -547,111 +547,111 @@ Do
   
    
    ' Move if valid
-   If map(nx, ny) = 0
-      px = nx
-      py = ny
+   If map(NX, NY) = 0
+      PX = NX
+      PY = NY
    End If
    
    ' Pac-Man sprite animation
-   If pacman_direction = 0  ' Right
-      pacmancurrentsprite = pacmancurrentsprite + 1
-      If pacmancurrentsprite > 5
-         pacmancurrentsprite = 1
+   If PACMAN_DIRECTION = 0  ' Right
+      PACMAN_CURRENT_SPRITE = PACMAN_CURRENT_SPRITE + 1
+      If PACMAN_CURRENT_SPRITE > 5
+         PACMAN_CURRENT_SPRITE = 1
       End If
    End If
    
-   If pacman_direction = 1  ' Left
-      pacmancurrentsprite = pacmancurrentsprite + 1
-      If pacmancurrentsprite > 11
-         pacmancurrentsprite = 6
+   If PACMAN_DIRECTION = 1  ' Left
+      PACMAN_CURRENT_SPRITE = PACMAN_CURRENT_SPRITE + 1
+      If PACMAN_CURRENT_SPRITE > 11
+         PACMAN_CURRENT_SPRITE = 6
       End If
    End If
    
-   If pacman_direction = 2  ' Up
-      pacmancurrentsprite = pacmancurrentsprite + 1
-      If pacmancurrentsprite > 17
-         pacmancurrentsprite = 12
+   If PACMAN_DIRECTION = 2  ' Up
+      PACMAN_CURRENT_SPRITE = PACMAN_CURRENT_SPRITE + 1
+      If PACMAN_CURRENT_SPRITE > 17
+         PACMAN_CURRENT_SPRITE = 12
       End If
    End If
    
-   If pacman_direction = 3  ' Down
-      pacmancurrentsprite = pacmancurrentsprite + 1
-      If pacmancurrentsprite > 23
-         pacmancurrentsprite = 18
+   If PACMAN_DIRECTION = 3  ' Down
+      PACMAN_CURRENT_SPRITE = PACMAN_CURRENT_SPRITE + 1
+      If PACMAN_CURRENT_SPRITE > 23
+         PACMAN_CURRENT_SPRITE = 18
       End If
    End If
    
    ' Collect small dots
-   If map(nx, ny) = 3
-      px = nx
-      py = ny
-      If collected(px,py) = 0
-         collected(px,py) = 1
+   If map(NX, NY) = 3
+      PX = NX
+      PY = NY
+      If COLLECTED(PX,PY) = 0
+         COLLECTED(PX,PY) = 1
          points = points + 10
       End If
       
    End If
    
    ' Collect power pellets
-   If map(nx, ny) = 4
-      px = nx
-      py = ny
-      If collected(px,py) = 0
-         collected(px,py) = 1
+   If map(NX, NY) = 4
+      PX = NX
+      PY = NY
+      If COLLECTED(PX,PY) = 0
+         COLLECTED(PX,PY) = 1
          points = points + 50
-         power_pellet = 200
+         POWER_PELLET = 200
       End If
    End If
    
    ' Reset sprite when changing direction
-   If pacman_direction = 0
-      If pacman_direction <> pacman_turn_to_direction
-         pacmancurrentsprite = 1
-         pacman_turn_to_direction = 0
+   If PACMAN_DIRECTION = 0
+      If PACMAN_DIRECTION <> PACMAN_TURN_TO_DIRECTION
+         PACMAN_CURRENT_SPRITE = 1
+         PACMAN_TURN_TO_DIRECTION = 0
       End If
    End If
    
-   If pacman_direction = 1
-      If pacman_direction <> pacman_turn_to_direction
-         pacmancurrentsprite = 6
-         pacman_turn_to_direction = 1
+   If PACMAN_DIRECTION = 1
+      If PACMAN_DIRECTION <> PACMAN_TURN_TO_DIRECTION
+         PACMAN_CURRENT_SPRITE = 6
+         PACMAN_TURN_TO_DIRECTION = 1
       End If
    End If
    
-   If pacman_direction = 2
-      If pacman_direction <> pacman_turn_to_direction
-         pacmancurrentsprite = 11
-         pacman_turn_to_direction = 2
+   If PACMAN_DIRECTION = 2
+      If PACMAN_DIRECTION <> PACMAN_TURN_TO_DIRECTION
+         PACMAN_CURRENT_SPRITE = 11
+         PACMAN_TURN_TO_DIRECTION = 2
       End If
    End If
    
-   If pacman_direction = 3
-      If pacman_direction <> pacman_turn_to_direction
-         pacmancurrentsprite = 17
-         pacman_turn_to_direction = 3
+   If PACMAN_DIRECTION = 3
+      If PACMAN_DIRECTION <> PACMAN_TURN_TO_DIRECTION
+         PACMAN_CURRENT_SPRITE = 17
+         PACMAN_TURN_TO_DIRECTION = 3
       End If
    End If
    
    ' Teleport mechanics
-   If py = 14
-      If px = 0 
-         If pacman_direction = 1
-            px = 27
+   If PY = 14
+      If PX = 0 
+         If PACMAN_DIRECTION = 1
+            PX = 27
          End If
       End If
       
-      If px = 27
-         If pacman_direction = 0
-            px = 0
+      If PX = 27
+         If PACMAN_DIRECTION = 0
+            PX = 0
          End If
       End If
    End If
    
-   If current_ghost_timer = 0
+   If CURRENT_GHOST_TIMER = 0
     MoveGhosts[1]
-    current_ghost_timer = ghost_timer
+    CURRENT_GHOST_TIMER = GHOST_TIMER
    Else
-    current_ghost_timer = current_ghost_timer - 1
+    CURRENT_GHOST_TIMER = CURRENT_GHOST_TIMER - 1
 
    End If
 
