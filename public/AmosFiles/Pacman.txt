@@ -22,13 +22,13 @@ For y = 0 To MAP_SIZE
 Next
 
 Data 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-Data 1,3,3,3,3,3,3,3,3,3,3,3,3,1,1,3,3,3,3,3,3,3,4,3,3,3,3,1
+Data 1,3,3,3,3,3,5,3,3,3,3,3,3,1,1,3,3,3,3,3,3,3,4,3,3,3,3,1
 Data 1,3,1,1,1,1,3,1,1,1,1,1,3,1,1,3,1,1,1,1,1,3,1,1,1,1,3,1
+Data 1,3,1,1,1,1,6,1,1,1,1,1,3,1,1,3,1,1,1,1,1,3,1,1,1,1,3,1
 Data 1,3,1,1,1,1,3,1,1,1,1,1,3,1,1,3,1,1,1,1,1,3,1,1,1,1,3,1
-Data 1,3,1,1,1,1,3,1,1,1,1,1,3,1,1,3,1,1,1,1,1,3,1,1,1,1,3,1
-Data 1,3,3,3,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1
+Data 1,3,3,3,4,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1
 Data 1,3,1,1,1,1,3,1,1,3,1,1,1,1,1,1,1,1,3,1,1,3,1,1,1,1,3,1
-Data 1,3,1,1,1,1,3,1,1,3,1,1,1,1,1,1,1,1,3,1,1,3,1,1,1,1,3,1
+Data 1,3,1,1,1,1,8,1,1,3,1,1,1,1,1,1,1,1,3,1,1,3,1,1,1,1,3,1
 Data 1,3,3,3,3,3,3,1,1,3,3,3,3,1,1,3,3,3,3,1,1,3,3,3,3,3,3,1
 Data 1,1,1,1,1,1,3,1,1,1,1,1,3,1,1,3,1,1,1,1,1,3,1,1,1,1,1,1
 Data 1,1,1,1,1,1,3,1,1,1,1,1,3,1,1,3,1,1,1,1,1,3,1,1,1,1,1,1
@@ -367,6 +367,7 @@ End Proc
 ghostOneDirection = 0
 AlreaDYDied = 0
 
+
 ' ==========================================
 ' Map Drawing Procedure
 ' ==========================================
@@ -392,54 +393,142 @@ Procedure P_DRAWMAP[a]
          x23 = x13 + TILE_SIZE - 1
          y23 = y13 + TILE_SIZE - 1
          
+         tileRendered = 0
+         
          ' Wall tiles
          If map(x, y) = 1
             Ink 0
             Bar x13, y13 To x23, y23
-         Else
-            ' Small dots (value 3)
-            If map(x,y) = 3
-               Ink 1
-               renderPoints = 1
-               
-               If COLLECTED(x,y) = 1
-                  renderPoints = 0
-               End If
-               
-               If renderPoints = 1
-                  Bar x13, y13 To x23, y23
-                  Ink 3
-                  Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 2
-               Else
-                  Ink 1
-                  Bar x13, y13 To x23, y23
-                  Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
-               End If
-            Else
-               ' Power pellets (value 4)
-               If map(x, y) = 4
-                  renderPoints = 1
-                  If COLLECTED(x,y) = 1
-                     renderPoints = 0
-                  End If
-                  
-                  If renderPoints = 1
-                     Ink 1
-                     Bar x13, y13 To x23, y23
-                     Ink 3
-                     Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 8
-                  Else
-                     Ink 1
-                     Bar x13, y13 To x23, y23
-                     Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
-                  End If
-               Else
-                  ' Empty space
-                  Ink 1
-                  Bar x13, y13 To x23, y23
-                  Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
-               End If
+            tileRendered = 1
+         End If
+         
+         ' Small dots (value 3)
+         If map(x,y) = 3
+            Ink 1
+            renderPoints = 1
+            
+            If COLLECTED(x,y) = 1
+               renderPoints = 0
             End If
+            
+            If renderPoints = 1
+               Bar x13, y13 To x23, y23
+               Ink 3
+               Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 2
+            Else
+               Ink 1
+               Bar x13, y13 To x23, y23
+               Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
+            End If
+            tileRendered = 1
+         End If
+         
+         ' Power pellets (value 4)
+         If map(x, y) = 4
+            renderPoints = 1
+            If COLLECTED(x,y) = 1
+               renderPoints = 0
+            End If
+            
+            If renderPoints = 1
+               Ink 1
+               Bar x13, y13 To x23, y23
+               Ink 3
+               Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 8
+            Else
+               Ink 1
+               Bar x13, y13 To x23, y23
+               Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
+            End If
+            tileRendered = 1
+         End If
+         
+         ' Tile type 5
+         If map(x, y) = 5
+            renderPoints = 1
+            If COLLECTED(x,y) = 1
+               renderPoints = 0
+            End If
+            
+            If renderPoints = 1
+               RENDER_TYPE_FIVE_X= x* TILE_SIZE + 4
+               RENDER_TYPE_FIVE_Y= y* TILE_SIZE + 4
+               Sprite 4, RENDER_TYPE_FIVE_X, RENDER_TYPE_FIVE_Y, 27
+            Else
+               Ink 1
+               Bar x13, y13 To x23, y23
+               Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
+            Sprite 4, 500, 750, 27
+            End If
+            tileRendered = 1
+         End If
+         
+         ' Tile type 6
+         If map(x, y) = 6
+            renderPoints = 1
+            If COLLECTED(x,y) = 1
+               renderPoints = 0
+            End If
+            
+            If renderPoints = 1
+               RENDER_TYPE_SIX_X= x* TILE_SIZE + 4
+               RENDER_TYPE_SIX_Y= y* TILE_SIZE + 4
+               Sprite 5, RENDER_TYPE_SIX_X, RENDER_TYPE_SIX_Y, 28
+            Else
+               Ink 1
+               Bar x13, y13 To x23, y23
+               Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
+                Sprite 5, 520, 750, 28
+            End If
+            tileRendered = 1
+         End If
+         
+         ' Tile type 7
+         If map(x, y) = 7
+            renderPoints = 1
+            If COLLECTED(x,y) = 1
+               renderPoints = 0
+            End If
+            
+            If renderPoints = 1
+               RENDER_TYPE_SEVEN_X= x* TILE_SIZE + 4
+               RENDER_TYPE_SEVEN_Y= y* TILE_SIZE + 4
+               Sprite 6, RENDER_TYPE_SEVEN_X, RENDER_TYPE_SEVEN_Y, 29
+            Else
+               Ink 1
+               Bar x13, y13 To x23, y23
+               Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
+                Sprite 6, 540, 750, 29
+            End If
+            tileRendered = 1
+         End If
+
+         ' Tile type 8
+
+         If map(x, y) = 8
+            renderPoints = 1
+            If COLLECTED(x,y) = 1
+               renderPoints = 0
+            End If
+            
+            If renderPoints = 1
+               RENDER_TYPE_EIGHT_X= x* TILE_SIZE + 4
+               RENDER_TYPE_EIGHT_Y= y* TILE_SIZE + 4
+               Sprite 7, RENDER_TYPE_EIGHT_X, RENDER_TYPE_EIGHT_Y, 30
+            Else
+               Ink 1
+               Bar x13, y13 To x23, y23
+               Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
+               Sprite 7, 560, 750, 30
+            End If
+            tileRendered = 1
+         End If
+         
+         ' Default empty space (if nothing else rendered)
+         If tileRendered = 0
+            Ink 1
+            Bar x13, y13 To x23, y23
+            Circle x * TILE_SIZE + 12, y * TILE_SIZE + 12, 10
          End If
          
          ' Render Pac-Man
@@ -502,6 +591,7 @@ Ink 3
 
 Text 430,820, CURRENT_GHOST_TIMER
 Text 130,740, "Ghost movement timer:"
+Text 400,654, "Fruits:"
 Do
    P_DRAWMAP[1]
    
@@ -600,6 +690,48 @@ Do
          COLLECTED(PX,PY) = 1
          points = points + 50
          POWER_PELLET = 200
+      End If
+   End If
+
+      ' Collect FRUIT 5 (200 points)
+   If map(NX, NY) = 5
+      PX = NX
+      PY = NY
+      If COLLECTED(PX,PY) = 0
+         COLLECTED(PX,PY) = 1
+         points = points + 200
+      End If
+   End If
+
+      ' Collect FRUIT 6 (400 points)
+   If map(NX, NY) = 6
+      PX = NX
+      PY = NY
+      If COLLECTED(PX,PY) = 0
+         COLLECTED(PX,PY) = 1
+         points = points + 400
+      End If
+   End If
+
+
+      ' Collect FRUIT 7 (450 points)
+   If map(NX, NY) = 7
+      PX = NX
+      PY = NY
+      If COLLECTED(PX,PY) = 0
+         COLLECTED(PX,PY) = 1
+         points = points + 450
+      End If
+   End If
+
+
+      ' Collect FRUIT 8 (500 points)
+   If map(NX, NY) = 8
+      PX = NX
+      PY = NY
+      If COLLECTED(PX,PY) = 0
+         COLLECTED(PX,PY) = 1
+         points = points + 500
       End If
    End If
    

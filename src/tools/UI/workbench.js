@@ -274,8 +274,8 @@ export const WB_COLORS = {
 export function WorkbenchWindow({
     title,
     children,
-    requestFront,
-    globalZ,
+    requestfront,
+    globalz,
     defaultPos = { x: 120, y: 90 },
     onClose,
 }) {
@@ -286,7 +286,7 @@ export function WorkbenchWindow({
     const [zIndex, setZIndex] = useState(1);
     const [size, setSize] = useState({ width: 400, height: 400 });
     const [isHovered, setIsHovered] = useState(false);
-    const [myZ, setMyZ] = useState(globalZ);
+    const [myZ, setMyZ] = useState(globalz);
     const [isResizing, setIsResizing] = useState(false);
     const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
     const startResize = (e) => {
@@ -302,8 +302,8 @@ export function WorkbenchWindow({
     };
 
     const bringToFront = () => {
-        requestFront();       // ask shell to raise global Z
-        setMyZ(globalZ + 1);  // assign the new top value to this window
+        requestfront();       // ask shell to raise global Z
+        setMyZ(globalz + 1);  // assign the new top value to this window
     };
     const sendToBack = () => setZIndex(1);
 
@@ -604,7 +604,7 @@ export function WorkbenchIcon({
 //  WORKBENCH DESKTOP SHELL
 // -----------------------------
 export function WorkbenchShell({ children }) {
-    const [globalZ, setGlobalZ] = useState(10);
+    const [globalz, setglobalz] = useState(10);
     return (
         <div
 
@@ -631,13 +631,18 @@ export function WorkbenchShell({ children }) {
                 AMOS Basic parser to JavaScript Version 1.0
             </div>
 
-            {React.Children.map(children, child => {
-                if (!React.isValidElement(child)) return child; // <-- SKIP null, strings, etc.
-
-                return React.cloneElement(child, {
-                    requestFront: () => setGlobalZ((z) => z + 1),
-                    globalZ
-                });
+           {React.Children.map(children, child => {
+                if (!React.isValidElement(child)) return child;
+                
+                // Only pass custom props if it's a WorkbenchWindow component
+                if (child.type === WorkbenchWindow) {
+                    return React.cloneElement(child, {
+                        requestfront: () => setglobalz((z) => z + 1),
+                        globalz
+                    });
+                }
+                
+                return child;
             })}
 
         </div>
